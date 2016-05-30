@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 
 public class UmlsIndexWriter {
 	private static final Logger LOG  = LoggerFactory.getLogger(UmlsIndexWriter.class);
-	private static final String UMLS_CONCEPT_RETRIEVE_SQL_PATH = "sql/oracle/umlsConceptDefSelect.sql";
 	private String jdbcConnectString;
 	
 	/**
@@ -44,7 +43,7 @@ public class UmlsIndexWriter {
 
 	public void buildIndex(){
 		LOG.info("jdbcString:\n"+jdbcConnectString);
-		String fetchsql = getTextFromFile(UMLS_CONCEPT_RETRIEVE_SQL_PATH);
+		String fetchsql = getTextFromFile(Config.UMLS_CONCEPT_RETRIEVE_SQL_PATH);
 		try(Connection con = DriverManager.getConnection(jdbcConnectString)){
 			Statement st = con.createStatement();
 			ResultSet rs = st.executeQuery(fetchsql);
