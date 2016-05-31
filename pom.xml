@@ -46,5 +46,34 @@
 			<artifactId>lucene-core</artifactId>
 			<version>6.0.0</version>
 		</dependency>
+<!-- http://mvnrepository.com/artifact/org.apache.lucene/lucene-queryparser -->
+<dependency>
+    <groupId>org.apache.lucene</groupId>
+    <artifactId>lucene-queryparser</artifactId>
+    <version>6.0.1</version>
+</dependency>
+
 	</dependencies>
+        <build>
+                <plugins>
+
+
+                        <plugin>
+                                <groupId>org.apache.maven.plugins</groupId>
+                                <artifactId>maven-failsafe-plugin</artifactId>
+                                <version>2.19</version>
+                                <configuration>
+                                        <argLine>-Xmx1000m</argLine>
+                                </configuration>
+                                <executions>
+                                        <execution>
+                                                <goals>
+                                                        <goal>integration-test</goal>
+                                                        <goal>verify</goal>
+                                                </goals>
+                                        </execution>
+                                </executions>
+                        </plugin>
+</plugins>
+</build>
 </project>
