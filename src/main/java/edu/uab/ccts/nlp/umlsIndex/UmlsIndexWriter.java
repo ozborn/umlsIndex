@@ -62,11 +62,12 @@ public class UmlsIndexWriter {
 			ResultSet rs = st.executeQuery(fetchsql);
 			//StandardAnalyzer converts to lowercase and removes stop words
 			StandardAnalyzer analyzer = new StandardAnalyzer();
-			IndexWriterConfig config = new IndexWriterConfig(analyzer);
+			IndexWriterConfig tconfig = new IndexWriterConfig(analyzer);
+			IndexWriterConfig cconfig = new IndexWriterConfig(analyzer);
 			FSDirectory wordIndex = FSDirectory.open(Paths.get(Config.UMLS_WORD2TERM_INDEX_DIR));
 			FSDirectory termIndex = FSDirectory.open(Paths.get(Config.UMLS_TERM2CONCEPT_INDEX_DIR));
-			IndexWriter termW = new IndexWriter(wordIndex, config);
-			IndexWriter conW = new IndexWriter(termIndex, config);
+			IndexWriter termW = new IndexWriter(wordIndex, tconfig);
+			IndexWriter conW = new IndexWriter(termIndex, cconfig);
 
 			//Foreach concept
 			while(rs.next()){
