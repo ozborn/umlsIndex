@@ -1,7 +1,7 @@
 SELECT
 thetable.thecui,
-minconstr || ' ' || maxconstr || ' ' || modeconstr,
-mintui||' '||maxtui||' '||modetui
+minconstr || '__' || maxconstr || '__' || modeconstr,
+mintui||'__'||maxtui||'__'||modetui
 -- || ' ' || modecondef
 FROM
 (
@@ -20,5 +20,6 @@ WHERE mrconso.LAT='ENG'
 -- AND mrconso.stt = 'PF'
 -- AND mrconso.ispref = 'Y'
 -- AND tui IN ('T046','T047')
+-- AND mrconso.cui='C0814136'
 GROUP BY mrconso.cui
 ) thetable

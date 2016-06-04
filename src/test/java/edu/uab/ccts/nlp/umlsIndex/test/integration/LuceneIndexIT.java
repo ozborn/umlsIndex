@@ -42,13 +42,13 @@ public class LuceneIndexIT
 	@org.junit.Test
 	public void testIndex() throws Exception
 	{
-		TopDocs td = performSearch("cancer", 2);
+		TopDocs td = performSearch("cancer", 8);
 		ScoreDoc[] hits = td.scoreDocs;
 		System.out.println("Number of hits: " + hits.length);
 	    for (int i = 0; i < hits.length; i++) {
 	        Document hitDoc = searcher.doc(hits[i].doc);
 	        System.out.println(hitDoc.get("stemmedTerms"));
-	        System.out.println(hitDoc.get("cui"));
+	        System.out.println(hitDoc.get("cui")+" with score:"+hits[i].score);
 	        System.out.println(hitDoc.get("sty"));
 	        //assertEquals("C0814136", hitDoc.get("cui"));
 	      }
