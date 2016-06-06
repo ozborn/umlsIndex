@@ -17,8 +17,12 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -42,6 +46,8 @@ import org.slf4j.LoggerFactory;
 public class UmlsIndexWriter {
 	private static final Logger LOG  = LoggerFactory.getLogger(UmlsIndexWriter.class);
 	private String jdbcConnectString;
+	
+	Map<String,Set<String>> word2term = new HashMap<String,Set<String>>(500000);
 
 	/**
 	 * Write a simple UMLS Indexer
@@ -83,13 +89,13 @@ public class UmlsIndexWriter {
 				HashSet<String> termset = new HashSet<String>(Arrays.asList(termnames));
 				//Foreach term/synonym
 				for(String tnames : termset) {
-					System.out.println("Dealing with termname:"+tnames);
+					LOG.debug("Dealing with concept name:"+tnames);
 					//Tokenize and underscore to reflect what Lucene does and 
 					List<String> tokens = tokenizeString(analyzer, tnames);
 					StringBuilder sb = new StringBuilder();
 					for(int i=0;i<tokens.size();i++){
 						String tok = tokens.get(i);
-						System.out.println("Dealing with tokens:"+tok);
+						LOG.debug("Dealing with tokens:"+tok);
 						if(i<tokens.size()-1) { sb.append(tok); sb.append("_"); }
 						else sb.append(tok);
 					}
@@ -97,11 +103,28 @@ public class UmlsIndexWriter {
 					addConceptDoc(conW, cui,officialLuceneTerm,commaSTs.toString());
 					List<String> nostops = dropStopWords(tokens);
 					List<String> words = stemWords(nostops);
-					addTermDoc(termW, officialLuceneTerm,nostops,words);
+					//addTermDoc(termW, officialLuceneTerm,nostops);
+					addWord2Term(officialLuceneTerm,words);
 
 				}
 				rs.next();
 			}
+			conW.close();
+			for(Iterator<String> it = word2term.keySet().iterator();it.hasNext();){
+				String word = it.next();
+				Document doc = new Document();
+				doc.add(new TextField("word", word, Field.Store.YES));
+				Set<String> conceptTexts = word2term.get(word);
+				for(String ctext : conceptTexts) {
+					StoredField strField = new StoredField("conceptText", ctext);
+					doc.add(strField);
+				}
+				LOG.debug("Adding document for "+word+" with "+conceptTexts.size()+" entries");
+				termW.addDocument(doc);
+				it.remove();
+				
+			}
+			termW.close();
 			wordIndex.close();
 			termIndex.close();
 			rs.close();
@@ -154,12 +177,13 @@ Text fields are useful for keyword search.
 	 * @param tokenized
 	 * @throws IOException
 	 */
-	private void addTermDoc(IndexWriter w, String conceptUnderscoredText, List<String> nostops, List<String>tokenized) throws IOException {
+	private void addTermDoc(IndexWriter w, String conceptUnderscoredText, List<String> nostops) throws IOException {
 		Document doc = new Document();
 		for(String tword : nostops) {
 			doc.add(new TextField("word", tword, Field.Store.YES));
 			StoredField strField = new StoredField("conceptText", conceptUnderscoredText);
 			doc.add(strField);
+			LOG.info("Adding to words:"+tword+" with concept name:"+conceptUnderscoredText);
 			w.addDocument(doc);
 		}
 	}
@@ -173,7 +197,7 @@ Text fields are useful for keyword search.
 		//doc.add(new StringField("sty", semantic_type, Field.Store.YES));
 		StoredField styField = new StoredField("sty", semantic_type);
 		doc.add(styField);
-		System.out.println("Adding to concepts:"+conceptUnderscoredText+" with cui:"+cui+" with types:"+semantic_type);
+		LOG.info("Adding to concepts:"+conceptUnderscoredText+" with cui:"+cui+" with types:"+semantic_type);
 		w.addDocument(doc);
 	}
 
@@ -222,6 +246,18 @@ Text fields are useful for keyword search.
 	private List<String> stemWords(List<String> allWords){
 		return new ArrayList<String>(allWords);
 
+	}
+	
+	
+	private void addWord2Term(String concept, List<String> tokens) {
+		for(String tok : tokens) {
+			Set<String> s = word2term.get(tok);
+			if(s==null) s = new HashSet<String>();
+			s.add(concept);
+			word2term.put(tok, s);
+			LOG.info("Added/Updated "+tok+" with "+s.size()+" concepts");
+		}
+		
 	}
 
 

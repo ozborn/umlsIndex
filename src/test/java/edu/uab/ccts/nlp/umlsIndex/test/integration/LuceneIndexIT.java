@@ -4,7 +4,6 @@ import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.nio.file.Paths;
-import org.junit.Test;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -23,8 +22,10 @@ import org.apache.lucene.store.FSDirectory;
  */
 public class LuceneIndexIT 
 {
-	private IndexSearcher searcher = null;
-	private QueryParser parser = null;
+	private IndexSearcher word2termSearcher = null;
+	private IndexSearcher term2conceptSearcher = null;
+	private QueryParser wordParser = null;
+	private QueryParser termParser = null;
 	/**
 	 * Create the test case
 	 *
@@ -32,8 +33,10 @@ public class LuceneIndexIT
 	 */
 	public LuceneIndexIT() throws IOException
 	{
-		searcher = new IndexSearcher(DirectoryReader.open(FSDirectory.open(Paths.get("target/index.lucene"))));
-		parser = new QueryParser("stemmedTerms", new StandardAnalyzer());
+		word2termSearcher = new IndexSearcher(DirectoryReader.open(FSDirectory.open(Paths.get("target/word2concept.lucene"))));
+		term2conceptSearcher = new IndexSearcher(DirectoryReader.open(FSDirectory.open(Paths.get("target/term2concept.lucene"))));
+		wordParser = new QueryParser("word", new StandardAnalyzer());
+		termParser = new QueryParser("concept", new StandardAnalyzer());
 	}
 
 	
@@ -42,11 +45,11 @@ public class LuceneIndexIT
 	@org.junit.Test
 	public void testIndex() throws Exception
 	{
-		TopDocs td = performSearch("cancer", 8);
+		TopDocs td = performSearch(wordParser,"mucocutaneous ulcers", 20);
 		ScoreDoc[] hits = td.scoreDocs;
 		System.out.println("Number of hits: " + hits.length);
 	    for (int i = 0; i < hits.length; i++) {
-	        Document hitDoc = searcher.doc(hits[i].doc);
+	        Document hitDoc = word2termSearcher.doc(hits[i].doc);
 	        System.out.println(hitDoc.get("stemmedTerms"));
 	        System.out.println(hitDoc.get("cui")+" with score:"+hits[i].score);
 	        System.out.println(hitDoc.get("sty"));
@@ -54,14 +57,14 @@ public class LuceneIndexIT
 	      }
 	}
 
-	public TopDocs performSearch(String queryString, int n)
+	public TopDocs performSearch(QueryParser qp,String queryString, int n)
 			throws IOException, ParseException {
-		Query query = parser.parse(queryString);
-		return searcher.search(query, n);
+		Query query = qp.parse(queryString);
+		return word2termSearcher.search(query, n);
 	}
 
 	public Document getDocument(int docId)
 			throws IOException {
-		return searcher.doc(docId);
+		return word2termSearcher.doc(docId);
 	}
 }
