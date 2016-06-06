@@ -92,18 +92,19 @@ public class UmlsIndexWriter {
 					LOG.debug("Dealing with concept name:"+tnames);
 					//Tokenize and underscore to reflect what Lucene does and 
 					List<String> tokens = tokenizeString(analyzer, tnames);
+					List<String> cleantokens = cleanText(tokens);
+					List<String> nostops = dropStopWords(cleantokens);
 					StringBuilder sb = new StringBuilder();
-					for(int i=0;i<tokens.size();i++){
-						String tok = tokens.get(i);
-						LOG.debug("Dealing with tokens:"+tok);
-						if(i<tokens.size()-1) { sb.append(tok); sb.append("_"); }
+					for(int i=0;i<nostops.size();i++){
+						String tok = nostops.get(i);
+						LOG.debug("Dealing with non-stop token:"+tok);
+						if(i<nostops.size()-1) { sb.append(tok); sb.append("_"); }
 						else sb.append(tok);
 					}
 					String officialLuceneTerm = sb.toString();
 					addConceptDoc(conW, cui,officialLuceneTerm,commaSTs.toString());
-					List<String> nostops = dropStopWords(tokens);
-					List<String> words = stemWords(nostops);
 					//addTermDoc(termW, officialLuceneTerm,nostops);
+					List<String> words = stemWords(nostops);
 					addWord2Term(officialLuceneTerm,words);
 
 				}
@@ -263,7 +264,14 @@ Text fields are useful for keyword search.
 			word2term.put(tok, s);
 			LOG.debug("Added/Updated "+tok+" with "+s.size()+" concepts");
 		}
-		
+	}
+	
+	
+	private List<String> cleanText(List<String> input) {
+		for(String dirty : input) {
+			dirty.replaceAll(":", "_");
+		}
+		return input;
 	}
 
 
