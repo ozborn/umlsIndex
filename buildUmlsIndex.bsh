@@ -1,2 +1,2 @@
 #!/bin/bash
-java -cp target/umlsIndex-0.0.2-SNAPSHOT-jar-with-dependencies.jar edu.uab.ccts.nlp.umlsIndex.UmlsIndexWriter jdbc:oracle:thin:umls/umls@genome-bmidb.ad.uab.edu:1521:ccts2
+java -cp target/classes:target/umlsIndex-0.0.2-SNAPSHOT-jar-with-dependencies.jar edu.uab.ccts.nlp.umlsIndex.UmlsIndexWriter jdbc:oracle:thin:umls/umls@genome-bmidb.ad.uab.edu:1521:ccts2
