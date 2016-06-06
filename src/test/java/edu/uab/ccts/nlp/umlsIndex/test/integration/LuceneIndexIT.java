@@ -2,6 +2,7 @@ package edu.uab.ccts.nlp.umlsIndex.test.integration;
 
 
 import java.io.IOException;
+import java.io.File;
 import java.nio.file.Paths;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -19,6 +20,7 @@ import com.google.common.collect.HashMultiset;
 
 import edu.uab.ccts.nlp.umlsIndex.Config;
 
+import org.junit.Assume;
 
 /**
  * Unit test for simple App.
@@ -48,6 +50,9 @@ public class LuceneIndexIT
 	@org.junit.Test
 	public void testIndex() throws Exception
 	{
+		File f = new File(Config.UMLS_WORD2TERM_INDEX_DIR);
+		org.junit.Assume.assumeTrue(!(f.isDirectory() && f.list().length>0));
+
 		TopDocs td = performSearch(wordParser,word2termSearcher,"multiple ulcers", 100);
 		ScoreDoc[] hits = td.scoreDocs;
 		System.out.println("Number of hits: " + hits.length);

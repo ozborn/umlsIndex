@@ -19,8 +19,9 @@ WHERE mrconso.LAT='ENG'
 -- AND mrconso.ts = 'P'
 -- AND mrconso.stt = 'PF'
 -- AND mrconso.ispref = 'Y'
-AND tui IN ('T046')
+-- AND tui IN ('T046')
 -- AND tui IN ('T046','T047')
+AND mrconso.SAB LIKE 'SNOMEDCT%'
 -- AND mrconso.cui='C0814136'
 GROUP BY mrconso.cui
 ) thetable

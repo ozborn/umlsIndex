@@ -231,8 +231,8 @@ Text fields are useful for keyword search.
 	 */
 	public List<String> dropStopWords(List<String> allWords) throws URISyntaxException{
 		List<String> stops = new ArrayList<String>();
-		//try (Stream<String> stream = Files.lines(Paths.get(getClass().getResource("/StopWords.txt").toURI()))) {
-		try (Stream<String> stream = new BufferedReader(new InputStreamReader(ClassLoader.getSystemResourceAsStream("StopWords.txt"))).lines()){
+		try (Stream<String> stream = Files.lines(Paths.get(getClass().getResource("/StopWords.txt").toURI()))) {
+		//try (Stream<String> stream = new BufferedReader(new InputStreamReader(ClassLoader.getSystemResourceAsStream("StopWords.txt"))).lines()){
 			stops = stream
 			.filter(line -> !line.startsWith("#"))
 			.collect(Collectors.toList());
