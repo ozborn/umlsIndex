@@ -110,24 +110,28 @@ public class UmlsIndexWriter {
 				rs.next();
 			}
 			conW.close();
+			termIndex.close();
+			rs.close();
+
 			for(Iterator<String> it = word2term.keySet().iterator();it.hasNext();){
 				String word = it.next();
 				Document doc = new Document();
 				doc.add(new TextField("word", word, Field.Store.YES));
 				Set<String> conceptTexts = word2term.get(word);
+				StringBuilder sb = new StringBuilder();
 				for(String ctext : conceptTexts) {
-					StoredField strField = new StoredField("conceptText", ctext);
-					doc.add(strField);
+					sb.append(ctext); sb.append(" ");
 				}
-				LOG.debug("Adding document for "+word+" with "+conceptTexts.size()+" entries");
+				StoredField strField = new StoredField("conceptText", sb.toString());
+				doc.add(strField);
+				LOG.debug("Concept text after adding all that was:"+doc.get("conceptText"));
+				LOG.info("Adding document for "+word+" with "+conceptTexts.size()+" entries");
 				termW.addDocument(doc);
 				it.remove();
 				
 			}
 			termW.close();
 			wordIndex.close();
-			termIndex.close();
-			rs.close();
 		} catch (Exception e) { e.printStackTrace(); }
 	}
 
@@ -197,7 +201,7 @@ Text fields are useful for keyword search.
 		//doc.add(new StringField("sty", semantic_type, Field.Store.YES));
 		StoredField styField = new StoredField("sty", semantic_type);
 		doc.add(styField);
-		LOG.info("Adding to concepts:"+conceptUnderscoredText+" with cui:"+cui+" with types:"+semantic_type);
+		LOG.debug("Adding to concepts:"+conceptUnderscoredText+" with cui:"+cui+" with types:"+semantic_type);
 		w.addDocument(doc);
 	}
 
@@ -255,7 +259,7 @@ Text fields are useful for keyword search.
 			if(s==null) s = new HashSet<String>();
 			s.add(concept);
 			word2term.put(tok, s);
-			LOG.info("Added/Updated "+tok+" with "+s.size()+" concepts");
+			LOG.debug("Added/Updated "+tok+" with "+s.size()+" concepts");
 		}
 		
 	}

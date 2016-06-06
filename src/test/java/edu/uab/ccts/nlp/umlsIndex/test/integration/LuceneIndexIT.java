@@ -1,6 +1,5 @@
 package edu.uab.ccts.nlp.umlsIndex.test.integration;
 
-import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -15,6 +14,10 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.FSDirectory;
+
+import com.google.common.collect.HashMultiset;
+
+import edu.uab.ccts.nlp.umlsIndex.Config;
 
 
 /**
@@ -33,8 +36,8 @@ public class LuceneIndexIT
 	 */
 	public LuceneIndexIT() throws IOException
 	{
-		word2termSearcher = new IndexSearcher(DirectoryReader.open(FSDirectory.open(Paths.get("target/word2concept.lucene"))));
-		term2conceptSearcher = new IndexSearcher(DirectoryReader.open(FSDirectory.open(Paths.get("target/term2concept.lucene"))));
+		word2termSearcher = new IndexSearcher(DirectoryReader.open(FSDirectory.open(Paths.get(Config.UMLS_WORD2TERM_INDEX_DIR))));
+		term2conceptSearcher = new IndexSearcher(DirectoryReader.open(FSDirectory.open(Paths.get(Config.UMLS_TERM2CONCEPT_INDEX_DIR))));
 		wordParser = new QueryParser("word", new StandardAnalyzer());
 		termParser = new QueryParser("concept", new StandardAnalyzer());
 	}
@@ -45,23 +48,40 @@ public class LuceneIndexIT
 	@org.junit.Test
 	public void testIndex() throws Exception
 	{
-		TopDocs td = performSearch(wordParser,"mucocutaneous ulcers", 20);
+		TopDocs td = performSearch(wordParser,word2termSearcher,"multiple ulcers", 100);
 		ScoreDoc[] hits = td.scoreDocs;
 		System.out.println("Number of hits: " + hits.length);
+		HashMultiset<String> searchsummary = HashMultiset.create();
 	    for (int i = 0; i < hits.length; i++) {
 	        Document hitDoc = word2termSearcher.doc(hits[i].doc);
-	        System.out.println(hitDoc.get("stemmedTerms"));
-	        System.out.println(hitDoc.get("cui")+" with score:"+hits[i].score);
-	        System.out.println(hitDoc.get("sty"));
-	        //assertEquals("C0814136", hitDoc.get("cui"));
+	        String theword = hitDoc.get("word");
+	        String allconcept_text = hitDoc.get("conceptText");
+	        String[] allcons = allconcept_text.split(" ");
+	        System.out.println(theword+" id:"+hits[i].doc+" with score:"+hits[i].score
+	        +" is associated with "+allcons.length+" concepts, see::"+allconcept_text);
+
+	        HashMultiset<String> hitsummary = HashMultiset.create();
+	        for(int j=0;j<allcons.length;j++) {
+	        	TopDocs topcons = performSearch(termParser,term2conceptSearcher,allcons[j], 1);
+	        	ScoreDoc[] conhits = topcons.scoreDocs;
+	        	Document conDoc = term2conceptSearcher.doc(conhits[0].doc);
+	        	String cui = conDoc.get("cui");
+	        	System.out.println(conDoc.get("concept")+" with concept score:"+
+	        	conhits[0].score+" and cui: "+cui);
+	        	hitsummary.add(cui);
+	        }
+	        searchsummary.addAll(hitsummary);
 	      }
+          assert(searchsummary.contains("C1265815"));
 	}
 
-	public TopDocs performSearch(QueryParser qp,String queryString, int n)
+
+	public TopDocs performSearch(QueryParser qp, IndexSearcher is, String queryString, int n)
 			throws IOException, ParseException {
 		Query query = qp.parse(queryString);
-		return word2termSearcher.search(query, n);
+		return is.search(query, n);
 	}
+
 
 	public Document getDocument(int docId)
 			throws IOException {
