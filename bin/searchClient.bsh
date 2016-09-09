@@ -1,0 +1,2 @@
+#!/bin/bash
+java -cp target/test-classes:target/classes:target/umlsIndex-0.0.2-SNAPSHOT-jar-with-dependencies.jar -Dlog4j.configuration=log4j.properties edu.uab.ccts.nlp.umlsIndex.SearchClient "multiple ulcers"
